@@ -185,7 +185,7 @@ jobs:
           COVERAGE: true
           SKLEARN_TESTS_GLOBAL_RANDOM_SEED: 42
           SCIPY_ARRAY_API: 1
-          SKLEARN_SKIP_NETWORK_TESTS: ${{ ('push' == 'schedule' || 'push' == 'workflow_dispatch') && '0' || '1' }}
+          SKLEARN_SKIP_NETWORK_TESTS: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '0' || '1' }}
         - name: Linux x86-64 pymin_conda_forge_openblas_ubuntu_2204
           os: ubuntu-22.04
           DISTRIB: conda
@@ -253,7 +253,7 @@ jobs:
     - name: Build scikit-learn
       run: bash -l build_tools/github/install.sh
     - name: Set random global random seed for nightly/manual runs
-      if: ${{ 'push' == 'schedule' || 'push' == 'workflow_dispatch' }}
+      if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
       shell: bash
       run: |
         SKLEARN_TESTS_GLOBAL_RANDOM_SEED=$((RANDOM % 20))
@@ -262,7 +262,7 @@ jobs:
         echo "    SKLEARN_TESTS_GLOBAL_RANDOM_SEED=$SKLEARN_TESTS_GLOBAL_RANDOM_SEED"
         echo "See: https://scikit-learn.org/dev/developers/global_configuration.html#sklearn-tests-global-random-seed"
     - name: Run float32 tests for nightly/manual runs
-      if: ${{ 'push' == 'schedule' || 'push' == 'workflow_dispatch' }}
+      if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
       shell: bash
       run: |
         echo SKLEARN_RUN_FLOAT32_TESTS=1 >> $GITHUB_ENV
@@ -292,7 +292,13 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         disable_search: true
     - name: Update tracking issue
-      if: ${{ always() && ('push' == 'schedule' || 'push' == 'workflow_dispatch')}}
+      # racecar: de-folding github.event_name makes this TRUE under our dispatch, which
+      # would run maint_tools/update_tracking_issue.py. That script authenticates with
+      # secrets.BOT_GITHUB_TOKEN (absent on this fork - no org or repo secret exists) and
+      # creates/edits/closes issues in $GITHUB_REPOSITORY. With no token it simply fails
+      # the job; it writes nothing. Gated to the canonical repo because issue bookkeeping
+      # is not part of a build-overhead measurement.
+      if: ${{ always() && github.repository == 'scikit-learn/scikit-learn' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')}}
       shell: bash
       run: |
         set -ex
@@ -310,7 +316,7 @@ jobs:
     name: Linux x86-64 pylatest_free_threaded
     runs-on: ubuntu-latest
     needs: [lint, retrieve-commit-message, retrieve-selected-tests]
-    if: contains(needs.retrieve-commit-message.outputs.message, '[free-threaded]') || 'push' == 'schedule' || 'push' == 'workflow_dispatch'
+    if: contains(needs.retrieve-commit-message.outputs.message, '[free-threaded]') || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     env:
       DISTRIB: conda-free-threaded
       LOCK_FILE: build_tools/github/pylatest_free_threaded_linux-64_conda.lock
@@ -353,7 +359,7 @@ jobs:
     - name: Build scikit-learn
       run: bash -l build_tools/github/install.sh
     - name: Set random global random seed for nightly/manual runs
-      if: ${{ 'push' == 'schedule' || 'push' == 'workflow_dispatch' }}
+      if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
       shell: bash
       run: |
         SKLEARN_TESTS_GLOBAL_RANDOM_SEED=$((RANDOM % 20))
@@ -362,7 +368,7 @@ jobs:
         echo "    SKLEARN_TESTS_GLOBAL_RANDOM_SEED=$SKLEARN_TESTS_GLOBAL_RANDOM_SEED"
         echo "See: https://scikit-learn.org/dev/developers/global_configuration.html#sklearn-tests-global-random-seed"
     - name: Run float32 tests for nightly/manual runs
-      if: ${{ 'push' == 'schedule' || 'push' == 'workflow_dispatch' }}
+      if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
       shell: bash
       run: |
         echo SKLEARN_RUN_FLOAT32_TESTS=1 >> $GITHUB_ENV
@@ -392,7 +398,13 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         disable_search: true
     - name: Update tracking issue
-      if: ${{ always() && ('push' == 'schedule' || 'push' == 'workflow_dispatch')}}
+      # racecar: de-folding github.event_name makes this TRUE under our dispatch, which
+      # would run maint_tools/update_tracking_issue.py. That script authenticates with
+      # secrets.BOT_GITHUB_TOKEN (absent on this fork - no org or repo secret exists) and
+      # creates/edits/closes issues in $GITHUB_REPOSITORY. With no token it simply fails
+      # the job; it writes nothing. Gated to the canonical repo because issue bookkeeping
+      # is not part of a build-overhead measurement.
+      if: ${{ always() && github.repository == 'scikit-learn/scikit-learn' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')}}
       shell: bash
       run: |
         set -ex
@@ -410,7 +422,7 @@ jobs:
     name: Linux x86-64 pylatest_pip_scipy_dev
     runs-on: ubuntu-22.04
     needs: [lint, retrieve-commit-message, retrieve-selected-tests]
-    if: contains(needs.retrieve-commit-message.outputs.message, '[scipy-dev]') || 'push' == 'schedule' || 'push' == 'workflow_dispatch'
+    if: contains(needs.retrieve-commit-message.outputs.message, '[scipy-dev]') || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     env:
       DISTRIB: conda-pip-scipy-dev
       LOCK_FILE: build_tools/github/pylatest_pip_scipy_dev_linux-64_conda.lock
@@ -453,7 +465,7 @@ jobs:
     - name: Build scikit-learn
       run: bash -l build_tools/github/install.sh
     - name: Set random global random seed for nightly/manual runs
-      if: ${{ 'push' == 'schedule' || 'push' == 'workflow_dispatch' }}
+      if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
       shell: bash
       run: |
         SKLEARN_TESTS_GLOBAL_RANDOM_SEED=$((RANDOM % 20))
@@ -462,7 +474,7 @@ jobs:
         echo "    SKLEARN_TESTS_GLOBAL_RANDOM_SEED=$SKLEARN_TESTS_GLOBAL_RANDOM_SEED"
         echo "See: https://scikit-learn.org/dev/developers/global_configuration.html#sklearn-tests-global-random-seed"
     - name: Run float32 tests for nightly/manual runs
-      if: ${{ 'push' == 'schedule' || 'push' == 'workflow_dispatch' }}
+      if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
       shell: bash
       run: |
         echo SKLEARN_RUN_FLOAT32_TESTS=1 >> $GITHUB_ENV
@@ -492,7 +504,13 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         disable_search: true
     - name: Update tracking issue
-      if: ${{ always() && ('push' == 'schedule' || 'push' == 'workflow_dispatch')}}
+      # racecar: de-folding github.event_name makes this TRUE under our dispatch, which
+      # would run maint_tools/update_tracking_issue.py. That script authenticates with
+      # secrets.BOT_GITHUB_TOKEN (absent on this fork - no org or repo secret exists) and
+      # creates/edits/closes issues in $GITHUB_REPOSITORY. With no token it simply fails
+      # the job; it writes nothing. Gated to the canonical repo because issue bookkeeping
+      # is not part of a build-overhead measurement.
+      if: ${{ always() && github.repository == 'scikit-learn/scikit-learn' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')}}
       shell: bash
       run: |
         set -ex
@@ -544,7 +562,7 @@ jobs:
         auto-activate: true
         activate-environment: ""
     - name: Set random global random seed for nightly/manual runs
-      if: ${{ 'push' == 'schedule' || 'push' == 'workflow_dispatch' }}
+      if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
       shell: bash
       run: |
         SKLEARN_TESTS_GLOBAL_RANDOM_SEED=$((RANDOM % 20))
@@ -553,7 +571,7 @@ jobs:
         echo "    SKLEARN_TESTS_GLOBAL_RANDOM_SEED=$SKLEARN_TESTS_GLOBAL_RANDOM_SEED"
         echo "See: https://scikit-learn.org/dev/developers/global_configuration.html#sklearn-tests-global-random-seed"
     - name: Run float32 tests for nightly/manual runs
-      if: ${{ 'push' == 'schedule' || 'push' == 'workflow_dispatch' }}
+      if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
       shell: bash
       run: |
         echo SKLEARN_RUN_FLOAT32_TESTS=1 >> $GITHUB_ENV
@@ -588,7 +606,13 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         disable_search: true
     - name: Update tracking issue
-      if: ${{ always() && ('push' == 'schedule' || 'push' == 'workflow_dispatch')}}
+      # racecar: de-folding github.event_name makes this TRUE under our dispatch, which
+      # would run maint_tools/update_tracking_issue.py. That script authenticates with
+      # secrets.BOT_GITHUB_TOKEN (absent on this fork - no org or repo secret exists) and
+      # creates/edits/closes issues in $GITHUB_REPOSITORY. With no token it simply fails
+      # the job; it writes nothing. Gated to the canonical repo because issue bookkeeping
+      # is not part of a build-overhead measurement.
+      if: ${{ always() && github.repository == 'scikit-learn/scikit-learn' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')}}
       run: |
         set -ex
 
