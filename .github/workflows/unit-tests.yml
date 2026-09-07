@@ -40,7 +40,12 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    if: github.repository == 'scikit-learn/scikit-learn'
+    # racecar: the upstream guard pins this job to the canonical repo, so on a
+    # fork it skips and the run reports success having executed nothing. This
+    # fork is added as an ADDITIONAL allowed repo; the upstream clause stays.
+    # check-job-statuses keeps its guard, and the schedule/dispatch-only
+    # 'Update tracking issue' step (BOT_GITHUB_TOKEN) stays off.
+    if: github.repository == 'scikit-learn/scikit-learn' || github.repository == 'curiosity-tests/scikit-learn'
     steps:
     - name: Checkout
       uses: crashappsec/action-checkout@main
@@ -71,7 +76,12 @@ jobs:
   retrieve-commit-message:
     name: Retrieve the latest commit message
     runs-on: ubuntu-latest
-    if: github.repository == 'scikit-learn/scikit-learn'
+    # racecar: the upstream guard pins this job to the canonical repo, so on a
+    # fork it skips and the run reports success having executed nothing. This
+    # fork is added as an ADDITIONAL allowed repo; the upstream clause stays.
+    # check-job-statuses keeps its guard, and the schedule/dispatch-only
+    # 'Update tracking issue' step (BOT_GITHUB_TOKEN) stays off.
+    if: github.repository == 'scikit-learn/scikit-learn' || github.repository == 'curiosity-tests/scikit-learn'
     outputs:
       message: ${{ steps.git-log.outputs.message }}
     steps:
@@ -105,7 +115,12 @@ jobs:
   retrieve-selected-tests:
     name: Retrieve the selected tests
     runs-on: ubuntu-latest
-    if: github.repository == 'scikit-learn/scikit-learn'
+    # racecar: the upstream guard pins this job to the canonical repo, so on a
+    # fork it skips and the run reports success having executed nothing. This
+    # fork is added as an ADDITIONAL allowed repo; the upstream clause stays.
+    # check-job-statuses keeps its guard, and the schedule/dispatch-only
+    # 'Update tracking issue' step (BOT_GITHUB_TOKEN) stays off.
+    if: github.repository == 'scikit-learn/scikit-learn' || github.repository == 'curiosity-tests/scikit-learn'
     outputs:
       tests: ${{ steps.selected-tests.outputs.tests }}
     needs: [retrieve-commit-message]
@@ -148,7 +163,12 @@ jobs:
   unit-tests:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    if: github.repository == 'scikit-learn/scikit-learn'
+    # racecar: the upstream guard pins this job to the canonical repo, so on a
+    # fork it skips and the run reports success having executed nothing. This
+    # fork is added as an ADDITIONAL allowed repo; the upstream clause stays.
+    # check-job-statuses keeps its guard, and the schedule/dispatch-only
+    # 'Update tracking issue' step (BOT_GITHUB_TOKEN) stays off.
+    if: github.repository == 'scikit-learn/scikit-learn' || github.repository == 'curiosity-tests/scikit-learn'
     needs: [lint, retrieve-commit-message, retrieve-selected-tests]
     strategy:
       fail-fast: false
@@ -263,7 +283,10 @@ jobs:
       if: ${{ env.COVERAGE == 'true' && needs.retrieve-selected-tests.outputs.tests == ''}}
     - name: Upload coverage report to Codecov
       uses: codecov/codecov-action@v6
-      if: ${{ env.COVERAGE == 'true' && needs.retrieve-selected-tests.outputs.tests == ''}}
+      # racecar: gated OFF on forks. CODECOV_TOKEN is an upstream secret and
+      # codecov-action hard-fails on an empty one; this narrows the upload step,
+      # not the test workload.
+      if: ${{ (github.repository == 'scikit-learn/scikit-learn') && env.COVERAGE == 'true' && needs.retrieve-selected-tests.outputs.tests == ''}}
       with:
         files: ./coverage.xml
         token: ${{ secrets.CODECOV_TOKEN }}
@@ -360,7 +383,10 @@ jobs:
       if: ${{ env.COVERAGE == 'true' && needs.retrieve-selected-tests.outputs.tests == ''}}
     - name: Upload coverage report to Codecov
       uses: codecov/codecov-action@v6
-      if: ${{ env.COVERAGE == 'true' && needs.retrieve-selected-tests.outputs.tests == ''}}
+      # racecar: gated OFF on forks. CODECOV_TOKEN is an upstream secret and
+      # codecov-action hard-fails on an empty one; this narrows the upload step,
+      # not the test workload.
+      if: ${{ (github.repository == 'scikit-learn/scikit-learn') && env.COVERAGE == 'true' && needs.retrieve-selected-tests.outputs.tests == ''}}
       with:
         files: ./coverage.xml
         token: ${{ secrets.CODECOV_TOKEN }}
@@ -457,7 +483,10 @@ jobs:
       if: ${{ env.COVERAGE == 'true' && needs.retrieve-selected-tests.outputs.tests == ''}}
     - name: Upload coverage report to Codecov
       uses: codecov/codecov-action@v6
-      if: ${{ env.COVERAGE == 'true' && needs.retrieve-selected-tests.outputs.tests == ''}}
+      # racecar: gated OFF on forks. CODECOV_TOKEN is an upstream secret and
+      # codecov-action hard-fails on an empty one; this narrows the upload step,
+      # not the test workload.
+      if: ${{ (github.repository == 'scikit-learn/scikit-learn') && env.COVERAGE == 'true' && needs.retrieve-selected-tests.outputs.tests == ''}}
       with:
         files: ./coverage.xml
         token: ${{ secrets.CODECOV_TOKEN }}
@@ -550,7 +579,10 @@ jobs:
       if: ${{ env.COVERAGE == 'true' && needs.retrieve-selected-tests.outputs.tests == ''}}
     - name: Upload coverage report to Codecov
       uses: codecov/codecov-action@v6
-      if: ${{ env.COVERAGE == 'true' && needs.retrieve-selected-tests.outputs.tests == ''}}
+      # racecar: gated OFF on forks. CODECOV_TOKEN is an upstream secret and
+      # codecov-action hard-fails on an empty one; this narrows the upload step,
+      # not the test workload.
+      if: ${{ (github.repository == 'scikit-learn/scikit-learn') && env.COVERAGE == 'true' && needs.retrieve-selected-tests.outputs.tests == ''}}
       with:
         files: ./coverage.xml
         token: ${{ secrets.CODECOV_TOKEN }}
