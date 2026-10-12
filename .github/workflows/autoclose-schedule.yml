@@ -6,8 +6,6 @@ permissions:
   pull-requests: write
 
 on:
-  schedule:
-    - cron: '0 2 * * *' # runs daily at 02:00 UTC
   workflow_dispatch:
 
 env:
